@@ -23,29 +23,37 @@ credentials_profile_name="Bedrock-fullaccess",
         "temperature": 0.1
     },
 )
+# HTMLを取得
+url = "https://baseball.yahoo.co.jp/npb/schedule/?date=2025-05-13"
+html = BeautifulSoup(requests.get(url).text, "html.parser").body.prettify()
 
-# LLMへの問い合わせ（htmlをquestionに埋め込む！）
+# LLMへの問い合わせ
 with get_bedrock_anthropic_callback() as callback:
-
     question = f"""
-以下のHTMLは、日本のプロ野球の試合結果が記載されたHTMLです。
-このHTMLには各試合のスコア、チーム名が含まれています。
+以下は、プロ野球の試合結果を取得するためのテンプレートです。
 
-url=https://baseball.yahoo.co.jp/npb/schedule/?date=2025-05-13
-HTML：
-{html}
+--- formatJSON ---
+https://baseball.yahoo.co.jp/npb/schedule/?date={{.date}}
 
-HTMLを読み取り、出場チームごとに勝敗を判定し、以下のJSON形式で出力してください：
+このページから{{.date}}の各球団の試合結果を、以下のjsonフォーマットで返してください。
 
-出力形式：
 {{
-  "team_name": "チーム名",
-  "won": true
+"team_name": string,
+"result": boolean
 }}
+
+ex)
+{{
+"team_name": "楽天",
+"result": true
+}}
+
+--- formatTextAllTeam ---
+{{.date}}の各球団の試合結果を返してください。
 
 【出力規則】
 - 指定のJSONフォーマットで出力してください
-- 引き分け・中止・勝敗不明な場合は "won": false にしてください
+- 試合が行われなかった、引き分けの場合は「won」をfalseにしてください
 - すべてのチームについて、必ず結果を出力してください
 
 【対象チーム】
@@ -62,7 +70,50 @@ HTMLを読み取り、出場チームごとに勝敗を判定し、以下のJSON
 ・オリックス
 ・西武
 
+--- formatTextOneTeam ---
+https://baseball.yahoo.co.jp/npb/schedule/?date={{.date}}
+
+このページから{{.team_name}}の試合結果を返してください。
+
+【出力規則】
+- 指定のJSONフォーマットで出力してください
+- 試合が行われなかった、引き分けの場合は「won」をfalseにしてください
+
+--- formatTextAllTeamForHTML ---
+以下のHTML要素から各球団の試合結果を返してください。
+
+{{.html}}
+
+【出力規則】
+- 指定のJSONフォーマットで出力してください
+- 試合が行われなかった、引き分けの場合は「won」をfalseにしてください
+- すべてのチームについて、必ず結果を出力してください
+
+【対象チーム】
+・巨人
+・阪神
+・DeNA
+・広島
+・ヤクルト
+・中日
+・ソフトバンク
+・日本ハム
+・ロッテ
+・楽天
+・オリックス
+・西武
+
+--- formatTextOneTeamForHTML ---
+以下のHTML要素から{{.team_name}}の試合結果を返してください。
+
+{{.html}}
+
+【出力規則】
+- 指定のJSONフォーマットで出力してください
+- 試合が行われなかった、引き分けの場合は「won」をfalseにしてください
+
 """
+
 
     print('\n 質問: ', question)
 
@@ -74,4 +125,4 @@ HTMLを読み取り、出場チームごとに勝敗を判定し、以下のJSON
     print('\n 回答: ', result.content)
 
     # 最後に、消費したトークン数と費用を出力します。
-    print('\n レポート:', callback)
+    print('\n レポート:', callback) 

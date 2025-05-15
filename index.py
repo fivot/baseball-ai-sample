@@ -25,7 +25,7 @@ credentials_profile_name="Bedrock-fullaccess",
 )
 
 # Yahoo!プロ野球の試合結果ページからHTMLを取得
-url = "https://baseball.yahoo.co.jp/npb/schedule/?date=2025-05-12"
+url = "https://baseball.yahoo.co.jp/npb/schedule/?date=2025-02-10"
 response = requests.get(url)
 soup = BeautifulSoup(response.text, "html.parser")
 
@@ -53,8 +53,9 @@ HTMLを読み取り、出場チームごとに勝敗を判定し、以下のJSON
 【出力規則】
 - 出場しているすべてのチームについて出力してください
 - 指定のJSONフォーマットで出力してください
-- 引き分け・中止・勝敗不明な場合は "won": false にしてください
-- すべてのチームについて、必ず結果を出力してください
+- 引き分け・中止の場合は "won": false にしてください
+- 試合がなかった日は、「試合はありません」と記載されるので、その日の結果はすべてのチームにおいて"won": false にしてください。他の日の試合結果がHTML中に記載されていても、**それらは絶対に無視してください**
+- HTMLには他の日付の試合結果も含まれている可能性があります。必ず当該日付に対応する情報のみを対象にしてください。
 
 【対象チーム】
 ・巨人
@@ -69,8 +70,6 @@ HTMLを読み取り、出場チームごとに勝敗を判定し、以下のJSON
 ・楽天
 ・オリックス
 ・西武
-
-
 
 """
 
